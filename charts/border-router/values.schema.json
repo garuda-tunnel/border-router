@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["namespace", "name", "images"],
+  "properties": {
+    "namespace": { "type": "string", "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" },
+    "name":      { "type": "string", "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" },
+    "images": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["border"],
+      "properties": {
+        "border": { "type": "string" },
+        "frr":    { "type": "string" }
+      }
+    },
+    "templateChecksum": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "frr-sidecar": { "type": "object" },
+    "ospf": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["router_id"],
+      "properties": {
+        "router_id": { "type": "string" }
+      }
+    }
+  }
+}

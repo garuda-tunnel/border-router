@@ -1,0 +1,8 @@
+namespace: garuda
+name: border-router
+images:
+  border: ghcr.io/garuda-tunnel/garuda-border-router:latest
+  frr: ghcr.io/garuda-tunnel/garuda-frr-sidecar:latest
+templateChecksum: "0000000000000000000000000000000000000000000000000000000000000000"
+ospf:
+  router_id: 198.51.100.50

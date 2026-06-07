@@ -1,0 +1,11 @@
+apiVersion: v2
+name: border-router
+description: "Garuda border_router (local border egress + OSPF sidecar, no WireGuard)."
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: frr-sidecar
+    version: "0.1.0"
+    repository: "oci://ghcr.io/garuda-tunnel/charts"

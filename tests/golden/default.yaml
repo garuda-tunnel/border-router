@@ -1,0 +1,107 @@
+---
+# Source: border-router/templates/configmap-frr.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "border-router-frr"
+  namespace: "garuda"
+data:
+  frr.conf: |
+    frr defaults traditional
+    log file /tmp/frr.log
+    zebra nexthop proto only
+    interface backbone
+     ip ospf area 0.0.0.0
+    ip ospf hello-interval 5
+     ip ospf dead-interval 15
+     ip ospf mtu-ignore
+    interface dummy0
+     ip ospf area 0.0.0.0
+    ip ospf passive
+    router ospf
+     ospf router-id 198.51.100.50
+    
+  daemons: |
+    zebra=yes
+    ospfd=yes
+  vtysh.conf: |
+    service integrated-vtysh-config
+
+---
+# Source: border-router/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "border-router"
+  namespace: "garuda"
+  labels:
+    app.kubernetes.io/name: border-router
+    app.kubernetes.io/instance: "border-router"
+    app.kubernetes.io/managed-by: Helm
+    garuda.managed-by: helm
+spec:
+  # Recreate + replicas:1: the pod owns exclusive netns resources (dummy0, the
+  # border_egress RPDB table, the Multus NADs). Two pods cannot co-exist on the
+  # node, so RollingUpdate would deadlock. Mirrors the wireguard chart.
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: border-router
+      app.kubernetes.io/instance: "border-router"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: border-router
+        app.kubernetes.io/instance: "border-router"
+        app.kubernetes.io/managed-by: Helm
+        garuda.managed-by: helm
+      annotations:
+        k8s.v1.cni.cncf.io/networks: "backbone@backbone,border@border"
+        garuda.template/checksum: "0000000000000000000000000000000000000000000000000000000000000000"
+        checksum/frr-config: ba105733669aa343e236175a80d3efe565f22bf758e0193912ae6c486a332755
+    spec:
+      restartPolicy: Always
+      # Pod-level sysctls: /proc/sys is read-only inside non-privileged
+      # containers even with NET_ADMIN, so ip_forward must be set here. Both are
+      # kubelet-"unsafe" and must be allow-listed at k3s install time
+      # (--kubelet-arg=allowed-unsafe-sysctls=...). See the hub k3s init.
+      securityContext:
+        sysctls:
+          - name: net.ipv4.ip_forward
+            value: "1"
+          - name: net.ipv4.conf.all.rp_filter
+            value: "2"
+      initContainers:
+        - name: egress-setup
+          image: "ghcr.io/garuda-tunnel/garuda-border-router:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            # BR_ADDRESS materialises the OSPF router-id as the dummy0 /32;
+            # the whole egress-setup is meaningless without ospf, so it is
+            # guarded together with the sidecar.
+            - name: BR_ADDRESS
+              value: "198.51.100.50/32"
+            - name: BORDER_IFACE
+              value: "border"
+            - name: BACKBONE_IFACE
+              value: "backbone"
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+      containers:
+        - name: frr-sidecar
+          image: "ghcr.io/garuda-tunnel/garuda-frr-sidecar:latest"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: frr-source
+              mountPath: /etc/frr-source
+              readOnly: true
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN", "NET_RAW", "SYS_ADMIN"]
+      volumes:
+        - name: frr-source
+          configMap:
+            name: border-router-frr

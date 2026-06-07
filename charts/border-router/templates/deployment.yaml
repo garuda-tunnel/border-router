@@ -1,0 +1,77 @@
+{{- $ospf := dict -}}
+{{- if .Values.ospf -}}
+{{- $ospf = (include "borderRouter.ospf" .) | fromJson -}}
+{{- end -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name | quote }}
+  namespace: {{ .Values.namespace | quote }}
+  labels:
+    {{- include "borderRouter.labels" . | nindent 4 }}
+spec:
+  # Recreate + replicas:1: the pod owns exclusive netns resources (dummy0, the
+  # border_egress RPDB table, the Multus NADs). Two pods cannot co-exist on the
+  # node, so RollingUpdate would deadlock. Mirrors the wireguard chart.
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "borderRouter.selector" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "borderRouter.labels" . | nindent 8 }}
+      annotations:
+        k8s.v1.cni.cncf.io/networks: {{ include "borderRouter.networks" . | quote }}
+        garuda.template/checksum: {{ .Values.templateChecksum | default "" | quote }}
+        {{- if .Values.ospf }}
+        checksum/frr-config: {{ include "frr-sidecar.configmap" (dict "name" .Values.name "namespace" .Values.namespace "ospf" $ospf) | sha256sum }}
+        {{- end }}
+    spec:
+      restartPolicy: Always
+      # Pod-level sysctls: /proc/sys is read-only inside non-privileged
+      # containers even with NET_ADMIN, so ip_forward must be set here. Both are
+      # kubelet-"unsafe" and must be allow-listed at k3s install time
+      # (--kubelet-arg=allowed-unsafe-sysctls=...). See the hub k3s init.
+      securityContext:
+        sysctls:
+          - name: net.ipv4.ip_forward
+            value: "1"
+          - name: net.ipv4.conf.all.rp_filter
+            value: "2"
+      {{- if .Values.ospf }}
+      initContainers:
+        - name: egress-setup
+          image: {{ .Values.images.border | quote }}
+          imagePullPolicy: IfNotPresent
+          env:
+            # BR_ADDRESS materialises the OSPF router-id as the dummy0 /32;
+            # the whole egress-setup is meaningless without ospf, so it is
+            # guarded together with the sidecar.
+            - name: BR_ADDRESS
+              value: {{ printf "%s/32" .Values.ospf.router_id | quote }}
+            - name: BORDER_IFACE
+              value: "border"
+            - name: BACKBONE_IFACE
+              value: "backbone"
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+      {{- end }}
+      containers:
+        {{- if .Values.ospf }}
+        {{- include "frr-sidecar.container" (dict
+              "image" .Values.images.frr
+              "ospf"  $ospf
+              "transit" (dict "interfaces" (list))
+            ) | nindent 8 }}
+        {{- end }}
+      {{- if .Values.ospf }}
+      volumes:
+        {{- include "frr-sidecar.volume" (dict
+              "name" .Values.name
+              "ospf" $ospf
+            ) | nindent 8 }}
+      {{- end }}
