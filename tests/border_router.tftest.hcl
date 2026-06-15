@@ -64,3 +64,45 @@ run "reject_invalid_router_id" {
   }
   expect_failures = [var.ospf]
 }
+
+run "empty_image_vars_omit_keys" {
+  command = plan
+  variables {
+    namespace = "garuda"
+    name      = "border-router"
+    image     = ""
+    frr_image = ""
+    ospf = {
+      router_id = "198.51.100.50"
+    }
+  }
+  assert {
+    condition     = !strcontains(helm_release.border_router.values[0], "garuda-border-router@sha256:")
+    error_message = "images.border must be omitted when image var is empty (chart digest must win)"
+  }
+  assert {
+    condition     = !strcontains(helm_release.border_router.values[0], "\"frr\":")
+    error_message = "images.frr must be omitted when frr_image var is empty"
+  }
+}
+
+run "nonempty_image_overrides" {
+  command = plan
+  variables {
+    namespace = "garuda"
+    name      = "border-router"
+    image     = "ghcr.io/garuda-tunnel/garuda-border-router@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    frr_image = ""
+    ospf = {
+      router_id = "198.51.100.50"
+    }
+  }
+  assert {
+    condition     = strcontains(helm_release.border_router.values[0], "garuda-border-router@sha256:1111111111111111111111111111111111111111111111111111111111111111")
+    error_message = "images.border must carry the override digest when image var is non-empty"
+  }
+  assert {
+    condition     = !strcontains(helm_release.border_router.values[0], "\"frr\":")
+    error_message = "images.frr must be omitted when frr_image var is empty"
+  }
+}

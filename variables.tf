@@ -15,15 +15,15 @@ variable "name" {
 }
 
 variable "image" {
-  description = "egress-setup image (component-local garuda-border-router build)."
+  description = "egress-setup image (component-local garuda-border-router build). Empty ⇒ use the chart's pinned digest."
   type        = string
-  default     = "ghcr.io/garuda-tunnel/garuda-border-router:latest"
+  default     = ""
 }
 
 variable "frr_image" {
-  description = "Image reference for the frr-sidecar container."
+  description = "Image reference for the frr-sidecar container. Empty ⇒ use the frr-sidecar library default digest (REQUIRES the frr-sidecar library-default task to have shipped; until then callers must pass a non-empty frr_image or the rendered frr container will fail to pull)."
   type        = string
-  default     = "ghcr.io/garuda-tunnel/garuda-frr-sidecar:latest"
+  default     = ""
 }
 
 variable "ospf" {
