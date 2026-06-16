@@ -44,7 +44,7 @@ spec:
       {{- if .Values.ospf }}
       initContainers:
         - name: egress-setup
-          image: {{ .Values.images.border | quote }}
+          image: {{ .Values.images.border | default (printf "ghcr.io/garuda-tunnel/garuda-border-router:%s" .Chart.Version) | quote }}
           imagePullPolicy: IfNotPresent
           env:
             # BR_ADDRESS materialises the OSPF router-id as the dummy0 /32;

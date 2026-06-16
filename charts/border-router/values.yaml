@@ -1,7 +1,7 @@
 namespace: garuda
 name: border-router
 images:
-  border: "ghcr.io/garuda-tunnel/garuda-border-router@sha256:b752bb67aac9992aba4319ea13e8b024cbafe7b1af352758c1d704ce1f5fc81e"
+  border: ""
   frr: ""
 # ospf is null when omitted; the FRR sidecar and dummy0 advertisement are then
 # NOT rendered. The mini-site always sets it.

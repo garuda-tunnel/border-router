@@ -9,7 +9,7 @@
     "images": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["border"],
+      "required": [],
       "properties": {
         "border": { "type": "string" },
         "frr":    { "type": "string" }
