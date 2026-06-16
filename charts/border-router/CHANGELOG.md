@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/garuda-tunnel/border-router-internal/compare/v0.2.0...v0.3.0) (2026-06-16)
+
+
+### Features
+
+* **chart:** bump frr-sidecar dependency 0.1.0 -&gt; 0.2.0 ([e85eefe](https://github.com/garuda-tunnel/border-router-internal/commit/e85eefee8fc8364737c910e8edc33b7e99d4043e))
+* **chart:** bump frr-sidecar dependency 0.1.0 → 0.2.0 ([cae7695](https://github.com/garuda-tunnel/border-router-internal/commit/cae7695843804abd785da4a140c6fe920a90175f))
+
 ## [0.2.0](https://github.com/garuda-tunnel/border-router-internal/compare/v0.1.0...v0.2.0) (2026-06-16)
 
 
