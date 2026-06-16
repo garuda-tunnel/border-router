@@ -17,11 +17,20 @@ variables {
   }
 }
 
-run "chart_path_resolves_to_bundled_chart" {
+run "chart_resolves_from_oci" {
   command = plan
+
   assert {
-    condition     = endswith(helm_release.border_router.chart, "/charts/border-router")
-    error_message = "helm_release.border_router.chart must point at $${path.module}/charts/border-router"
+    condition     = helm_release.border_router.repository == "oci://ghcr.io/garuda-tunnel/charts"
+    error_message = "helm_release.repository must be the garuda OCI charts registry"
+  }
+  assert {
+    condition     = helm_release.border_router.chart == "border-router"
+    error_message = "helm_release.chart must be the OCI chart name 'border-router'"
+  }
+  assert {
+    condition     = can(regex("^\\d+\\.\\d+\\.\\d+$", helm_release.border_router.version))
+    error_message = "helm_release.version must be an exact semver from var.chart_version"
   }
 }
 

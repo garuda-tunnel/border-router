@@ -26,6 +26,17 @@ variable "frr_image" {
   default     = ""
 }
 
+variable "chart_version" {
+  description = "Pinned OCI chart version (exact semver). Bumped in lockstep with Chart.yaml by release-please."
+  type        = string
+  default     = "0.1.0" # x-release-please-version
+
+  validation {
+    condition     = can(regex("^\\d+\\.\\d+\\.\\d+$", var.chart_version))
+    error_message = "chart_version must be exact semver MAJOR.MINOR.PATCH (no range, no 'latest')."
+  }
+}
+
 variable "ospf" {
   description = <<EOT
 OSPF intent. The single `router_id` IPv4 is materialised as the dummy0 /32 and

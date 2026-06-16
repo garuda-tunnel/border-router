@@ -25,7 +25,7 @@ spec:
         {{- include "borderRouter.labels" . | nindent 8 }}
       annotations:
         k8s.v1.cni.cncf.io/networks: {{ include "borderRouter.networks" . | quote }}
-        garuda.template/checksum: {{ .Values.templateChecksum | default "" | quote }}
+        garuda.template/checksum: {{ include (print $.Template.BasePath "/configmap-frr.yaml") . | sha256sum }}
         {{- if .Values.ospf }}
         checksum/frr-config: {{ include "frr-sidecar.configmap" (dict "name" .Values.name "namespace" .Values.namespace "ospf" $ospf) | sha256sum }}
         {{- end }}

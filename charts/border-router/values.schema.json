@@ -15,7 +15,6 @@
         "frr":    { "type": "string" }
       }
     },
-    "templateChecksum": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "frr-sidecar": { "type": "object" },
     "ospf": {
       "type": ["object", "null"],
