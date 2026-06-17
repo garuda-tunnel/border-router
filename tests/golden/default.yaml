@@ -38,6 +38,7 @@ metadata:
     app.kubernetes.io/name: border-router
     app.kubernetes.io/instance: "border-router"
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: garuda
     garuda.managed-by: helm
 spec:
   # Recreate + replicas:1: the pod owns exclusive netns resources (dummy0, the
@@ -56,6 +57,7 @@ spec:
         app.kubernetes.io/name: border-router
         app.kubernetes.io/instance: "border-router"
         app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: garuda
         garuda.managed-by: helm
       annotations:
         k8s.v1.cni.cncf.io/networks: "backbone@backbone,border@border"
