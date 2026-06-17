@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/garuda-tunnel/border-router-internal/compare/v0.3.0...v0.4.0) (2026-06-17)
+
+
+### Features
+
+* **border-router:** emit app.kubernetes.io/part-of=garuda pod label ([f4abc7a](https://github.com/garuda-tunnel/border-router-internal/commit/f4abc7a966cd871c2aac053e5845b9a6ed5de3f0))
+* **border-router:** emit app.kubernetes.io/part-of=garuda pod label ([108f661](https://github.com/garuda-tunnel/border-router-internal/commit/108f66190a2d91bf22d0e696f3f69b81e6f16805))
+
 ## [0.3.0](https://github.com/garuda-tunnel/border-router-internal/compare/v0.2.0...v0.3.0) (2026-06-16)
 
 
