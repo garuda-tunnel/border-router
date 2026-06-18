@@ -68,4 +68,47 @@ rc=$?
 set -e
 [ "$rc" -eq 1 ] || { echo "FAIL: expected exit 1 on missing border, got $rc"; exit 1; }
 
+# --- Case 3: MSS clamp (separate inet table border_mss) ---
+# The entrypoint must install a separate table inet border_mss with a forward
+# chain that clamps TCP MSS in both directions on the backbone interface.
+# BR_MSS defaults to 1240; 0 disables the table entirely.
+WORK3="$(mktemp -d)"; trap 'rm -rf "$WORK1" "$WORK2" "$WORK3"' EXIT
+make_stubs "$WORK3" ready
+PATH="$WORK3:$PATH" \
+  BR_ADDRESS="198.51.100.50/32" BORDER_IFACE=border BACKBONE_IFACE=backbone \
+  RT_TABLES="$WORK3/rt_tables" WAIT_TIMEOUT=3 BR_MSS=1240 \
+  bash "$ENTRY"
+
+# Collect everything nft received (the stub appends stdin to cmd.log).
+LOG3="$WORK3/cmd.log"
+
+# MSS clamp table must be a separate table inet border_mss (not border_router).
+grep -qF 'table inet border_mss' "$LOG3" \
+  || { echo "FAIL: separate table inet border_mss missing"; cat "$LOG3"; exit 1; }
+grep -qF 'iifname "backbone" tcp flags syn tcp option maxseg size set 1240' "$LOG3" \
+  || { echo "FAIL: iifname backbone MSS clamp missing"; cat "$LOG3"; exit 1; }
+grep -qF 'oifname "backbone" tcp flags syn tcp option maxseg size set 1240' "$LOG3" \
+  || { echo "FAIL: oifname backbone MSS clamp missing"; cat "$LOG3"; exit 1; }
+
+# AC8 negative: the ruleset must NOT drop or reject ICMP (policy accept).
+if grep -qiE 'icmp.*(drop|reject)|(drop|reject).*icmp' "$LOG3"; then
+  echo "FAIL: ICMP drop/reject found in ruleset"; cat "$LOG3"; exit 1
+fi
+
+# AC8 positive: forward chain default-accepts (policy accept present).
+grep -qF 'policy accept' "$LOG3" \
+  || { echo "FAIL: policy accept missing from forward chain"; cat "$LOG3"; exit 1; }
+
+# --- Case 4: BR_MSS=0 disables the MSS table entirely ---
+WORK4="$(mktemp -d)"; trap 'rm -rf "$WORK1" "$WORK2" "$WORK3" "$WORK4"' EXIT
+make_stubs "$WORK4" ready
+PATH="$WORK4:$PATH" \
+  BR_ADDRESS="198.51.100.50/32" BORDER_IFACE=border BACKBONE_IFACE=backbone \
+  RT_TABLES="$WORK4/rt_tables" WAIT_TIMEOUT=3 BR_MSS=0 \
+  bash "$ENTRY"
+LOG4="$WORK4/cmd.log"
+if grep -qF 'table inet border_mss' "$LOG4"; then
+  echo "FAIL: border_mss table must be absent when BR_MSS=0"; cat "$LOG4"; exit 1
+fi
+
 echo "ok: entrypoint_test"

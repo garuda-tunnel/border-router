@@ -23,6 +23,14 @@
       "properties": {
         "router_id": { "type": "string" }
       }
+    },
+    "borderRouter": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mssClampEnabled": { "type": "boolean" },
+        "mssClampValue":   { "type": "integer", "minimum": 0, "maximum": 1460 }
+      }
     }
   }
 }

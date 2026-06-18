@@ -17,7 +17,11 @@ BORDER_IFACE="${BORDER_IFACE:-border}"
 BACKBONE_IFACE="${BACKBONE_IFACE:-backbone}"
 WAIT_TIMEOUT="${WAIT_TIMEOUT:-30}"
 RT_TABLES="${RT_TABLES:-/etc/iproute2/rt_tables}"
+# Fixed MSS for transit TCP SYNs on backbone (both directions). 0 disables.
+# border-router has only 1500-MTU interfaces; clamp-to-pmtu is a no-op here.
+BR_MSS="${BR_MSS:-1240}"
 TABLE_NAME="border_router"
+MSS_TABLE_NAME="border_mss"
 
 # --- 1: wait for border iface readiness (fail fast on timeout) ---
 # Multus secondary attach is not strictly ordered against initContainer start.
@@ -83,3 +87,24 @@ table inet ${TABLE_NAME} {
 }
 EOF
 echo "[egress-setup] masquerade installed (oifname $BORDER_IFACE)"
+
+# --- 8: nft MSS clamp (separate table, bidirectional, backbone) ---
+# Kept in a separate table inet border_mss so masquerade in border_router is
+# untouched and so the MSS clamp is independently toggleable via BR_MSS=0.
+# Fixed MSS because border-router only has 1500-MTU interfaces; clamp-to-pmtu
+# would resolve to 1500 and be a no-op (Task 0 DQ4). Covers both directions
+# (iifname = inbound-initiated; oifname = egress toward internet).
+if [ "${BR_MSS}" -gt 0 ]; then
+    nft add table inet "$MSS_TABLE_NAME" 2>/dev/null || true
+    nft delete table inet "$MSS_TABLE_NAME" 2>/dev/null || true
+    nft -f - <<EOF
+table inet ${MSS_TABLE_NAME} {
+    chain forward {
+        type filter hook forward priority mangle; policy accept;
+        iifname "${BACKBONE_IFACE}" tcp flags syn tcp option maxseg size set ${BR_MSS}
+        oifname "${BACKBONE_IFACE}" tcp flags syn tcp option maxseg size set ${BR_MSS}
+    }
+}
+EOF
+    echo "[egress-setup] MSS clamp installed (${BACKBONE_IFACE} both dirs, MSS ${BR_MSS})"
+fi

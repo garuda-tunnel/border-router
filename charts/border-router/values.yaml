@@ -6,3 +6,9 @@ images:
 # ospf is null when omitted; the FRR sidecar and dummy0 advertisement are then
 # NOT rendered. The mini-site always sets it.
 ospf: null
+borderRouter:
+  # Fixed TCP MSS clamp for transit SYNs on the backbone interface (both
+  # directions). border-router has only 1500-MTU interfaces so clamp-to-pmtu
+  # is a no-op; a fixed value is used instead. 0 disables the MSS table.
+  mssClampEnabled: true
+  mssClampValue: 1240

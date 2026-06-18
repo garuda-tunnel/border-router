@@ -89,6 +89,8 @@ spec:
               value: "border"
             - name: BACKBONE_IFACE
               value: "backbone"
+            - name: BR_MSS
+              value: "1240"
           securityContext:
             capabilities:
               add: ["NET_ADMIN"]

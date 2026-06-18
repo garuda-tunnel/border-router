@@ -56,6 +56,8 @@ spec:
               value: "border"
             - name: BACKBONE_IFACE
               value: "backbone"
+            - name: BR_MSS
+              value: {{ if and .Values.borderRouter .Values.borderRouter.mssClampEnabled (gt (int (.Values.borderRouter.mssClampValue | default 1240)) 0) }}{{ .Values.borderRouter.mssClampValue | default 1240 | quote }}{{ else }}"0"{{ end }}
           securityContext:
             capabilities:
               add: ["NET_ADMIN"]
