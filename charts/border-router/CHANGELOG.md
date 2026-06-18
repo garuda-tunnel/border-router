@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/garuda-tunnel/border-router-internal/compare/v0.4.0...v0.5.0) (2026-06-18)
+
+
+### Features
+
+* **border-router:** add transit MSS clamp (separate inet table) ([c785475](https://github.com/garuda-tunnel/border-router-internal/commit/c78547574a2ce98f532b62e81b508c42558d7668))
+* **border-router:** transit MSS clamp (MTU/MSS Task 5) ([400ed34](https://github.com/garuda-tunnel/border-router-internal/commit/400ed349d518a1e496cc8abc38c30421159da455))
+
 ## [0.4.0](https://github.com/garuda-tunnel/border-router-internal/compare/v0.3.0...v0.4.0) (2026-06-17)
 
 
