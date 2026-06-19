@@ -56,8 +56,10 @@ spec:
               value: "border"
             - name: BACKBONE_IFACE
               value: "backbone"
-            - name: BR_MSS
-              value: {{ if and .Values.borderRouter .Values.borderRouter.mssClampEnabled (gt (int (.Values.borderRouter.mssClampValue | default 1240)) 0) }}{{ .Values.borderRouter.mssClampValue | default 1240 | quote }}{{ else }}"0"{{ end }}
+            - name: BR_FIXED_MSS
+              value: {{ .Values.mtuPolicy.fixedMss | quote }}
+            - name: BR_MSS_CLAMP_ENABLED
+              value: {{ .Values.mtuPolicy.mssClampEnabled | quote }}
           securityContext:
             capabilities:
               add: ["NET_ADMIN"]

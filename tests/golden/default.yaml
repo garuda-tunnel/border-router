@@ -89,8 +89,10 @@ spec:
               value: "border"
             - name: BACKBONE_IFACE
               value: "backbone"
-            - name: BR_MSS
+            - name: BR_FIXED_MSS
               value: "1240"
+            - name: BR_MSS_CLAMP_ENABLED
+              value: "true"
           securityContext:
             capabilities:
               add: ["NET_ADMIN"]

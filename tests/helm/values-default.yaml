@@ -5,3 +5,6 @@ images:
   frr: ghcr.io/garuda-tunnel/garuda-frr-sidecar:latest
 ospf:
   router_id: 198.51.100.50
+mtuPolicy:
+  fixedMss: 1240
+  mssClampEnabled: true

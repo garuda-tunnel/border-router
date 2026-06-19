@@ -1,4 +1,10 @@
 locals {
+  effective_mtu = var.mtu_policy.site_mtu != null ? var.mtu_policy.site_mtu : var.mtu_policy.effective_mtu
+  fixed_mss     = var.mtu_policy.site_mtu != null ? var.mtu_policy.site_mtu - 40 : var.mtu_policy.fixed_mss
+  # mss_clamp_enabled defaults to true via optional(bool, true) in the policy type.
+  # Task 6 wires it to BR_MSS_CLAMP_ENABLED to gate the border_mss nft table install.
+  mss_clamp_enabled = var.mtu_policy.mss_clamp_enabled
+
   # Empty/omitted keys ⇒ Helm coalesce preserves the chart-side images.* pinned
   # digests; a non-empty var overrides only that one key.
   images_override = merge(
@@ -28,6 +34,10 @@ resource "helm_release" "border_router" {
       name      = var.name
       images    = local.images_override
       ospf      = var.ospf
+      mtuPolicy = {
+        fixedMss        = local.fixed_mss
+        mssClampEnabled = local.mss_clamp_enabled
+      }
     })
   ]
 }
