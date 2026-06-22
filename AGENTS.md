@@ -8,6 +8,15 @@ Security and contribution rules for garuda-border-router.
 - Never commit or use domains other than well-known examples or `example.net`.
 - Never commit secrets, tokens, private keys, or customer data.
 
+## Garuda platform rules
+
+This repo is part of garuda-tunnel. Platform rules (annotation-layer design, MAP/VAP
+injection engine, `garuda_guest` contract, vanilla guest contract, bootstrap timing,
+Multus attach-race fix, anti-patterns):
+
+**See: https://github.com/garuda-tunnel/garuda/blob/main/docs/AGENTS-platform.md**
+Local path: `../garuda/docs/AGENTS-platform.md`
+
 ## Layout
 
 This repo's Terraform files are at the repo root (no `kube/` subdir). Consume via:
@@ -18,19 +27,14 @@ with **no** `//subdir` suffix. The TF source ref is:
 
     git::https://github.com/garuda-tunnel/garuda-border-router.git?ref=vX.Y.Z
 
-## FRR sidecar reuse — architectural rule
+## Border-router-specific notes
 
-This module consumes the `frr-sidecar` library Helm chart from OCI
-(`oci://ghcr.io/garuda-tunnel/charts/frr-sidecar`, published by the external repo
-`garuda-tunnel/garuda-frr-sidecar`). The consumer chart `charts/border-router/Chart.yaml`
-declares it via `dependencies:` with `repository: "oci://ghcr.io/garuda-tunnel/charts"`
-and a pinned `version`. The Terraform `helm_release` sets `dependency_update = true`
-so Helm resolves the OCI dependency at apply time (unauthenticated for the public
-ghcr package).
-
-Anti-patterns (do NOT do this):
-- Use `file://` form — it is OBSOLETE.
-- Pin to a non-immutable tag (e.g. `latest`) — always pin to a specific semver version.
-- Vendor the chart by copying it into consumer `charts/` directories.
-- Inline copy of `frr-sidecar` container spec in consumer `deployment.yaml`.
-- Local `<workload>.frrConf` helper duplicating `frr-sidecar.frrConf` rendering logic.
+- **`egress-setup` is a one-shot init container** (NOT a native sidecar): dummy0 `/32`
+  router-id materialisation, border_egress RPDB table (102), nft masquerade on border,
+  MSS clamp. It MUST NOT have `restartPolicy: Always`. The MAP injects the `frr-sidecar`
+  native sidecar separately; `egress-setup` is border-router's own workload-native fabric
+  function and stays in this chart.
+- `NET_ADMIN` in `egress-setup` is workload-native (border routing fabric). NOT injected
+  by garuda.
+- This module is a **vanilla guest**: accepts `annotations`, `labels`, `configmaps` map
+  inputs and has zero garuda knowledge. See platform rules for the full contract.
