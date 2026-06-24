@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/garuda-tunnel/border-router-internal/compare/v1.1.0...v1.2.0) (2026-06-24)
+
+
+### Features
+
+* **border-router:** vanilla guest chart — podLabels/podAnnotations, drop frr-sidecar dep + networks helper (retain egress-setup, add anchor container) ([b086fd3](https://github.com/garuda-tunnel/border-router-internal/commit/b086fd3cc293cb8c715732b9e02d606bb25c6f8d))
+* vanilla-guest passthrough + drop frr-sidecar (Phase 4+5) ([27c4aef](https://github.com/garuda-tunnel/border-router-internal/commit/27c4aeffca0a4d427e9f91ec16eb8ebb8696d5ac))
+
 ## [1.1.0](https://github.com/garuda-tunnel/border-router-internal/compare/v1.0.0...v1.1.0) (2026-06-19)
 
 
