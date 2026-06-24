@@ -21,7 +21,7 @@ variable "image" {
 }
 
 variable "frr_image" {
-  description = "Image reference for the frr-sidecar container. Empty ⇒ use the frr-sidecar library default digest (REQUIRES the frr-sidecar library-default task to have shipped; until then callers must pass a non-empty frr_image or the rendered frr container will fail to pull)."
+  description = "DEPRECATED: frr-sidecar is now MAP-injected by garuda-inject-fabric; this variable is inert and will be removed in a future release. Kept to avoid breaking existing callers."
   type        = string
   default     = ""
 }
@@ -53,6 +53,24 @@ EOT
     condition     = can(regex("^\\d+\\.\\d+\\.\\d+\\.\\d+$", var.ospf.router_id))
     error_message = "ospf.router_id must be an IPv4-formatted string."
   }
+}
+
+variable "annotations" {
+  description = "Pod-template annotations. From garuda_guest.annotations."
+  type        = map(string)
+  default     = {}
+}
+
+variable "labels" {
+  description = "Pod-template labels. From garuda_guest.labels."
+  type        = map(string)
+  default     = {}
+}
+
+variable "configmaps" {
+  description = "Extra ConfigMaps to create before pod admission. From garuda_guest.configmaps."
+  type        = map(map(string))
+  default     = {}
 }
 
 variable "mtu_policy" {

@@ -47,9 +47,11 @@ run "values_carry_identity_and_images" {
     condition     = strcontains(helm_release.border_router.values[0], "\"border\": \"ghcr.io/alexmkx/garuda-border-router:latest\"")
     error_message = "rendered values must include the border-router image"
   }
+  # frr_image is deprecated; frr-sidecar is MAP-injected. images.frr is no longer
+  # passed to helm values regardless of var.frr_image.
   assert {
-    condition     = strcontains(helm_release.border_router.values[0], "\"frr\": \"ghcr.io/alexmkx/garuda-frr-sidecar:latest\"")
-    error_message = "rendered values must include the frr image"
+    condition     = !strcontains(helm_release.border_router.values[0], "\"frr\":")
+    error_message = "images.frr must never appear in rendered values (frr-sidecar is MAP-injected)"
   }
 }
 
@@ -210,5 +212,23 @@ run "nonempty_image_overrides" {
   assert {
     condition     = !strcontains(helm_release.border_router.values[0], "\"frr\":")
     error_message = "images.frr must be omitted when frr_image var is empty"
+  }
+}
+
+run "passthrough_annotations_labels_configmaps" {
+  command = plan
+  variables {
+    annotations = { "net.garuda-tunnel/router-id" = "10.130.30.5" }
+    labels      = { "net.garuda-tunnel/profile" = "border" }
+    configmaps  = {}
+  }
+  # yamlencode produces quoted keys; assert on the exact quoted-key value format.
+  assert {
+    condition     = strcontains(helm_release.border_router.values[0], "\"net.garuda-tunnel/router-id\": \"10.130.30.5\"")
+    error_message = "podAnnotations must carry the injected router-id value"
+  }
+  assert {
+    condition     = strcontains(helm_release.border_router.values[0], "\"net.garuda-tunnel/profile\": \"border\"")
+    error_message = "podLabels must carry the injected profile label"
   }
 }

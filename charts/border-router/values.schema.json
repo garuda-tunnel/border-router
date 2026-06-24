@@ -11,11 +11,9 @@
       "additionalProperties": false,
       "required": [],
       "properties": {
-        "border": { "type": "string" },
-        "frr":    { "type": "string" }
+        "border": { "type": "string" }
       }
     },
-    "frr-sidecar": { "type": "object" },
     "ospf": {
       "type": ["object", "null"],
       "additionalProperties": false,
@@ -23,6 +21,14 @@
       "properties": {
         "router_id": { "type": "string" }
       }
+    },
+    "podLabels": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "podAnnotations": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
     },
     "mtuPolicy": {
       "type": "object",

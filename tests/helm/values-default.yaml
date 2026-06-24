@@ -2,9 +2,12 @@ namespace: garuda
 name: border-router
 images:
   border: ghcr.io/garuda-tunnel/garuda-border-router:latest
-  frr: ghcr.io/garuda-tunnel/garuda-frr-sidecar:latest
 ospf:
   router_id: 198.51.100.50
+podLabels:
+  net.garuda-tunnel/profile: border
+podAnnotations:
+  k8s.v1.cni.cncf.io/networks: backbone@backbone,border@border
 mtuPolicy:
   fixedMss: 1240
   mssClampEnabled: true

@@ -1,33 +1,4 @@
 ---
-# Source: border-router/templates/configmap-frr.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: "border-router-frr"
-  namespace: "garuda"
-data:
-  frr.conf: |
-    frr defaults traditional
-    log file /tmp/frr.log
-    zebra nexthop proto only
-    interface backbone
-     ip ospf area 0.0.0.0
-    ip ospf hello-interval 5
-     ip ospf dead-interval 15
-     ip ospf mtu-ignore
-    interface dummy0
-     ip ospf area 0.0.0.0
-    ip ospf passive
-    router ospf
-     ospf router-id 198.51.100.50
-    
-  daemons: |
-    zebra=yes
-    ospfd=yes
-  vtysh.conf: |
-    service integrated-vtysh-config
-
----
 # Source: border-router/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -59,10 +30,9 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: garuda
         garuda.managed-by: helm
+        net.garuda-tunnel/profile: border
       annotations:
-        k8s.v1.cni.cncf.io/networks: "backbone@backbone,border@border"
-        garuda.template/checksum: 20334fec14881389d35cd5b466b3231ffd0cf1597e26951377f17c35a82a8112
-        checksum/frr-config: ba105733669aa343e236175a80d3efe565f22bf758e0193912ae6c486a332755
+        k8s.v1.cni.cncf.io/networks: backbone@backbone,border@border
     spec:
       restartPolicy: Always
       # Pod-level sysctls: /proc/sys is read-only inside non-privileged
@@ -97,17 +67,6 @@ spec:
             capabilities:
               add: ["NET_ADMIN"]
       containers:
-        - name: frr-sidecar
-          image: "ghcr.io/garuda-tunnel/garuda-frr-sidecar:latest"
+        - name: anchor
+          image: registry.k8s.io/pause:3.10
           imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - name: frr-source
-              mountPath: /etc/frr-source
-              readOnly: true
-          securityContext:
-            capabilities:
-              add: ["NET_ADMIN", "NET_RAW", "SYS_ADMIN"]
-      volumes:
-        - name: frr-source
-          configMap:
-            name: border-router-frr

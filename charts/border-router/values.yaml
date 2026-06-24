@@ -2,10 +2,13 @@ namespace: garuda
 name: border-router
 images:
   border: ""
-  frr: ""
-# ospf is null when omitted; the FRR sidecar and dummy0 advertisement are then
-# NOT rendered. The mini-site always sets it.
+# ospf is null when omitted; the egress-setup initContainer is then NOT rendered.
+# The frr-sidecar is injected by the garuda MAP, not this chart.
 ospf: null
+# podLabels and podAnnotations are rendered on spec.template.metadata only.
+# Pass via garuda_guest.labels and garuda_guest.annotations.
+podLabels: {}
+podAnnotations: {}
 mtuPolicy:
   # Fixed TCP MSS value for transit SYNs on the backbone interface (both
   # directions). border-router has only 1500-MTU interfaces so clamp-to-pmtu

@@ -7,10 +7,20 @@ locals {
 
   # Empty/omitted keys ⇒ Helm coalesce preserves the chart-side images.* pinned
   # digests; a non-empty var overrides only that one key.
+  # frr_image is DEPRECATED (frr-sidecar is now MAP-injected); kept as inert input.
   images_override = merge(
     var.image == "" ? {} : { border = var.image },
-    var.frr_image == "" ? {} : { frr = var.frr_image },
   )
+}
+
+resource "kubernetes_config_map" "garuda_extra" {
+  for_each = var.configmaps
+  metadata {
+    name      = each.key
+    namespace = var.namespace
+  }
+  # each.value is a { filename => content } map (Decision #11).
+  data = each.value
 }
 
 resource "helm_release" "border_router" {
@@ -25,19 +35,24 @@ resource "helm_release" "border_router" {
   version    = var.chart_version
 
   # No-op for the OCI path (dependency is vendored in the published tgz);
-  # kept so the local-path dev/hotfix escape hatch still resolves frr-sidecar.
+  # kept so the local-path dev/hotfix escape hatch still resolves chart deps.
   dependency_update = true
 
   values = [
     yamlencode({
-      namespace = var.namespace
-      name      = var.name
-      images    = local.images_override
-      ospf      = var.ospf
+      namespace      = var.namespace
+      name           = var.name
+      images         = local.images_override
+      ospf           = var.ospf
+      # podLabels/podAnnotations are rendered on spec.template.metadata only
+      podLabels      = var.labels
+      podAnnotations = var.annotations
       mtuPolicy = {
         fixedMss        = local.fixed_mss
         mssClampEnabled = local.mss_clamp_enabled
       }
     })
   ]
+
+  depends_on = [kubernetes_config_map.garuda_extra]
 }

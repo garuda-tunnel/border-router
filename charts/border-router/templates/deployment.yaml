@@ -1,7 +1,3 @@
-{{- $ospf := dict -}}
-{{- if .Values.ospf -}}
-{{- $ospf = (include "borderRouter.ospf" .) | fromJson -}}
-{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,12 +19,13 @@ spec:
     metadata:
       labels:
         {{- include "borderRouter.labels" . | nindent 8 }}
-      annotations:
-        k8s.v1.cni.cncf.io/networks: {{ include "borderRouter.networks" . | quote }}
-        garuda.template/checksum: {{ include (print $.Template.BasePath "/configmap-frr.yaml") . | sha256sum }}
-        {{- if .Values.ospf }}
-        checksum/frr-config: {{ include "frr-sidecar.configmap" (dict "name" .Values.name "namespace" .Values.namespace "ospf" $ospf) | sha256sum }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       restartPolicy: Always
       # Pod-level sysctls: /proc/sys is read-only inside non-privileged
@@ -65,17 +62,6 @@ spec:
               add: ["NET_ADMIN"]
       {{- end }}
       containers:
-        {{- if .Values.ospf }}
-        {{- include "frr-sidecar.container" (dict
-              "image" .Values.images.frr
-              "ospf"  $ospf
-              "transit" (dict "interfaces" (list))
-            ) | nindent 8 }}
-        {{- end }}
-      {{- if .Values.ospf }}
-      volumes:
-        {{- include "frr-sidecar.volume" (dict
-              "name" .Values.name
-              "ospf" $ospf
-            ) | nindent 8 }}
-      {{- end }}
+        - name: anchor
+          image: registry.k8s.io/pause:3.10
+          imagePullPolicy: IfNotPresent
