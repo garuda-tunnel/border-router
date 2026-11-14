@@ -93,9 +93,9 @@ echo "[egress-setup] masquerade installed (oifname $BORDER_IFACE)"
 # --- 8: nft MSS clamp (separate table, bidirectional, backbone) ---
 # Kept in a separate table inet border_mss so masquerade in border_router is
 # untouched and so the MSS clamp is independently toggleable.
-# Fixed MSS because border-router only has 1500-MTU interfaces; clamp-to-pmtu
-# would resolve to 1500 and be a no-op (Task 0 DQ4). Covers both directions
-# (iifname = inbound-initiated; oifname = egress toward internet).
+# Fixed MSS because border uses the site tunnel MTU and backbone is 1500;
+# neither reflects the tunnelled path's narrowest hop, so clamp-to-pmtu would
+# not clamp to the right value. Covers both directions (Task 0 DQ4).
 if [ "${BR_MSS_CLAMP_ENABLED}" = "true" ]; then
     : "${BR_FIXED_MSS:?BR_FIXED_MSS is required when BR_MSS_CLAMP_ENABLED=true}"
     nft add table inet "$MSS_TABLE_NAME" 2>/dev/null || true

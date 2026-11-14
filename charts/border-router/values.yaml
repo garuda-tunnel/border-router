@@ -10,9 +10,9 @@ ospf: null
 podLabels: {}
 podAnnotations: {}
 mtuPolicy:
-  # Fixed TCP MSS value for transit SYNs on the backbone interface (both
-  # directions). border-router has only 1500-MTU interfaces so clamp-to-pmtu
-  # is a no-op; a fixed value is used instead.
+  # Fixed TCP MSS because border uses the site tunnel MTU and backbone is 1500;
+  # neither reflects the tunnelled path's narrowest hop, so clamp-to-pmtu would
+  # not clamp to the right value.
   fixedMss: 1240
   # Gates the border_mss nft table. Set to false to disable MSS clamping.
   mssClampEnabled: true
