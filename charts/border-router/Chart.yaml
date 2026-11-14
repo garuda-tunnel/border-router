@@ -3,5 +3,5 @@ name: border-router
 description: "Garuda border_router (local border egress via egress-setup init
   container; frr-sidecar is MAP-injected as a native sidecar)."
 type: application
-version: 1.2.0
+version: 1.2.1
 appVersion: "0.1.0"

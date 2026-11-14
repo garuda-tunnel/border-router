@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/garuda-tunnel/border-router-internal/compare/v1.2.0...v1.2.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **border-router:** require OpenTofu &gt;= 1.10 for null-guarded validations ([#24](https://github.com/garuda-tunnel/border-router-internal/issues/24)) ([c0188a5](https://github.com/garuda-tunnel/border-router-internal/commit/c0188a5afa77ea942b2d902ac0701c4af3842abf))
+
 ## [1.2.0](https://github.com/garuda-tunnel/border-router-internal/compare/v1.1.0...v1.2.0) (2026-06-24)
 
 
