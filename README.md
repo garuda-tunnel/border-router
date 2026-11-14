@@ -8,7 +8,7 @@ The frr-sidecar is injected at admission by the garuda MAP (`garuda-inject-fabri
 
 Unlike the other garuda-* component repos, **this repo's Terraform files are at the repo root** (no `kube/` subdir). Consume via:
 
-    source = "git::https://github.com/garuda-tunnel/garuda-border-router.git?ref=vX.Y.Z"
+    source = "git::https://github.com/garuda-tunnel/border-router.git?ref=vX.Y.Z"
 
 with **no** `//subdir` suffix.
 
@@ -17,7 +17,10 @@ with **no** `//subdir` suffix.
 
 ## Vanilla guest contract
 
-This module accepts `annotations`, `labels`, and `configmaps` inputs from `garuda_guest` and has zero garuda knowledge. See `AGENTS.md` for details.
+This module accepts `annotations`, `labels`, and `configmaps` inputs from
+`garuda_guest`. The chart owns egress setup; the platform owns FRR injection.
+`ospf.router_id` still supplies the dummy interface address to egress setup.
+Pass matching routing identity in the fabric intent.
 
 ## Inputs
 
@@ -27,9 +30,10 @@ This module accepts `annotations`, `labels`, and `configmaps` inputs from `garud
 | `name` | Deployment name | no (default: `border-router`) |
 | `image` | egress-setup image override. Empty → chart-pinned digest | no |
 | `frr_image` | **Deprecated.** frr-sidecar is MAP-injected; this variable is inert | no |
-| `chart_version` | Pinned OCI chart semver | no (default: `1.1.0`) |
+| `chart_version` | Pinned OCI chart semver | no (see `variables.tf`) |
 | `ospf` | OSPF intent object with `router_id`. Required for egress-setup | yes |
 | `mtu_policy` | MTU/MSS policy (site_mtu or effective_mtu+fixed_mss) | yes |
 | `annotations` | Pod-template annotations from `garuda_guest.annotations` | no |
 | `labels` | Pod-template labels from `garuda_guest.labels` | no |
 | `configmaps` | Extra ConfigMaps (Tier 2/3 FRR snippets) from `garuda_guest.configmaps` | no |
+

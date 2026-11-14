@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Security and contribution rules for garuda-border-router.
+Security and contribution rules for border-router.
 
 ## Security
 
@@ -21,11 +21,11 @@ Local path: `../garuda/docs/AGENTS-platform.md`
 
 This repo's Terraform files are at the repo root (no `kube/` subdir). Consume via:
 
-    source = "git::https://github.com/garuda-tunnel/garuda-border-router.git?ref=vX.Y.Z"
+    source = "git::https://github.com/garuda-tunnel/border-router.git?ref=vX.Y.Z"
 
 with **no** `//subdir` suffix. The TF source ref is:
 
-    git::https://github.com/garuda-tunnel/garuda-border-router.git?ref=vX.Y.Z
+    git::https://github.com/garuda-tunnel/border-router.git?ref=vX.Y.Z
 
 ## Border-router-specific notes
 
@@ -38,3 +38,4 @@ with **no** `//subdir` suffix. The TF source ref is:
   by garuda.
 - This module is a **vanilla guest**: accepts `annotations`, `labels`, `configmaps` map
   inputs and has zero garuda knowledge. See platform rules for the full contract.
+
